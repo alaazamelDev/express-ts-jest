@@ -1,10 +1,13 @@
-import express, {Express, Request, Response} from 'express';
+import express, {Express} from 'express';
+import router from "./routes/router";
 
 const app: Express = express();
 
-// add the default middlewares
-app.get('/', (req: Request, res: Response) => {
-    res.send("Hello World!");
-})
+app.use(express.json());
+
+// bind routes
+app.use(router)
+
+// TODO: bind fallback route
 
 export default app;

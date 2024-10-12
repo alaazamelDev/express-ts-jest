@@ -1,49 +1,58 @@
 import {UserService} from "../../src/services/user.service";
+import {afterEach} from "node:test";
 
-describe('User Service', () => {
+describe('UserService with External API', () => {
 
-    let dbClientMock: { fetchUser: jest.Mock };
     let userService: UserService;
+    let mockDbClient: { fetchUser: jest.Mock };
 
-    describe('get user by id', () => {
+    beforeEach(() => {
 
-        beforeEach(() => {
-            dbClientMock = {
-                fetchUser: jest.fn(),
-            }
-            userService = new UserService(dbClientMock);
+        // Arrange
+        mockDbClient = {fetchUser: jest.fn()}
+        userService = new UserService(mockDbClient);
+
+        // Mock the fetch API call
+        global.fetch = jest.fn();
+
+    })
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    })
+
+    it('should return user data with additional API data when valid userId is provided', async () => {
+
+        // Arrange: Mock the database call and the external API call
+        const mockUser: { id: string, name: string } = {id: "123", name: "Alaa"};
+        const mockApiResponse: { socialMedia: string } = {socialMedia: "@alaazamel"};
+
+        mockDbClient.fetchUser.mockResolvedValue(mockUser);
+        (global.fetch as jest.Mock).mockResolvedValue({
+            ok: true,
+            json: jest.fn().mockResolvedValue(mockApiResponse),
         })
 
-        afterEach(() => {
-            jest.clearAllMocks();
-        })
+        // Act: Call the service method
+        const res = await userService.getUserById("123");
 
-        it('should throw user not found error when invalid id is passed', async () => {
+        // Assert Check that user data and API data are returned
+        expect(res).toEqual({...mockUser, additionalData: mockApiResponse});
+        expect(mockDbClient.fetchUser).toHaveBeenCalledWith("123");
+        expect(global.fetch).toHaveBeenCalledWith("https://api.example.com/users/123")
+    });
 
-            // Arrange
-            const userId: string = '123';
-            dbClientMock.fetchUser.mockResolvedValue(null)
 
-            // Act & Assert
-            await expect(userService.getUserById(userId))
-                .rejects
-                .toThrow("User not found")
+    it('should throw an error when the API call fails', async () => {
 
-        });
+        // Arrange: Mock the database call and a failed API call
+        const mockUser: { id: string, name: string } = {id: "123", name: "Alaa"};
+        mockDbClient.fetchUser.mockResolvedValue(mockUser);
+        (global.fetch as jest.Mock).mockRejectedValue(new Error("API call failed"))
 
-        it('should return user object when valid id is passed', async () => {
-
-            // Arrange
-            const user: { id: string, name: string } = {id: "123", name: "Alaa Zamel"};
-            dbClientMock.fetchUser.mockResolvedValue(user)
-
-            // Act
-            const result = await userService.getUserById("123");
-
-            // Assert
-            expect(dbClientMock.fetchUser).toHaveBeenCalledWith("123")
-            expect(result).toEqual(user);
-
-        });
+        // Act & Assert: Expect an error to be thrown
+        await expect(userService.getUserById("123"))
+            .rejects
+            .toThrow("API call failed");
     });
 });

@@ -5,7 +5,7 @@ export function add(
     req: Request,
     res: Response<AddResponse | string>,
 ): void {
-
+    
     const {a, b} = req.body;
 
     if (typeof a !== 'number' || typeof b !== 'number') {

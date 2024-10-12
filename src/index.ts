@@ -1,6 +1,5 @@
 import app from './app';
 import {configDotenv} from "dotenv";
-import {RateLimiterMiddleware} from "./middlewares/rate-limiter.middleware";
 
 // configure
 configDotenv()

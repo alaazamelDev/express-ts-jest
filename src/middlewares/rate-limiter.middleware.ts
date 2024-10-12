@@ -10,7 +10,7 @@ const TIME_FRAME: number = 1000 * 60; // 1 minute
 export const RateLimiterMiddleware = (req: Request, res: Response, next: NextFunction) => {
 
     // get the ip of the client
-    const clientIp: string | undefined = req.ip;
+    const clientIp: string = req.ip!;
     const currentTime: number = Date.now();
 
     if (!rateLimitStore[clientIp]) {

@@ -23,3 +23,16 @@ export class UserService {
 
     }
 }
+
+export const getUsers = async () => {
+    // Simulated user fetching logic
+    return [
+        { id: 1, name: 'John Doe' },
+        { id: 2, name: 'Jane Doe' }
+    ];
+};
+
+export const createUser = async (user: any) => {
+    // Simulated user creation logic
+    return { id: 3, ...user };
+};
